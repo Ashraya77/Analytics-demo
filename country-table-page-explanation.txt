@@ -1,0 +1,773 @@
+Country Table Page Walkthrough
+==============================
+
+This document explains exactly how the Countries page works today in this project.
+It covers the route page, the CountryTable component, the data flow, the UI states,
+search debouncing, sorting, filtering, and pagination.
+
+
+1. Which page is this?
+----------------------
+
+The page route is defined in:
+app/tables/page.tsx
+
+That file is very small. Its only job is to render the CountryTable component:
+
+- It imports CountryTable from components/custom/CountryTable.
+- It returns a wrapping div.
+- Inside that div, it renders <CountryTable />.
+
+So almost all of the real logic is not in app/tables/page.tsx.
+It is in components/custom/CountryTable.tsx.
+
+
+2. Why CountryTable is a client component
+-----------------------------------------
+
+CountryTable starts with:
+"use client";
+
+That means this component runs on the client side and can use:
+
+- React state
+- useEffect
+- browser APIs
+- input event handlers like onChange and onClick
+
+This is necessary because the table has interactive features:
+
+- search input
+- region dropdown filter
+- sortable columns
+- pagination buttons
+- local loading and error state
+
+
+3. Imports used by the component
+--------------------------------
+
+CountryTable imports:
+
+- useEffect and useState from React
+- getCountries from application/services/countryService
+- Image from next/image
+
+What each import does:
+
+- useState stores local UI state.
+- useEffect runs side effects after render.
+- getCountries performs the API request for the country data.
+- Image renders country flags using Next.js image handling.
+
+
+4. Data types declared in the file
+----------------------------------
+
+The file defines several TypeScript interfaces:
+
+- Currency
+- Language
+- Flags
+- Country
+
+These describe the shape of the API response.
+
+Important Country fields used by the UI:
+
+- name
+- alpha2Code
+- alpha3Code
+- capital
+- region
+- subregion
+- population
+- area
+- flag
+- flags.png
+- nativeName
+- currencies
+- languages
+
+The file also defines a SortKey type:
+
+- "name"
+- "capital"
+- "region"
+- "subregion"
+- "population"
+- "area"
+
+This restricts sorting to known columns only.
+
+
+5. Helper functions
+-------------------
+
+There are two formatting helpers and one icon helper.
+
+5.1 formatNumber
+
+Purpose:
+- Formats numeric values like population using Intl.NumberFormat.
+
+Behavior:
+- If the value is null or undefined, it returns "—".
+- Otherwise it returns a formatted number like 1,234,567.
+
+5.2 formatArea
+
+Purpose:
+- Formats area values.
+
+Behavior:
+- If the value is null or undefined, it returns "—".
+- Otherwise it returns a formatted string like 147,516 km².
+
+5.3 SortIcon
+
+Purpose:
+- Displays a visual sort indicator beside a column title.
+
+Behavior:
+- If the column is not currently sorted, it shows a faint up/down symbol.
+- If the column is the active sort column, it shows an up arrow or down arrow.
+
+Important current quirk:
+- In the table header, several columns currently pass col="name" even when the
+  column is capital, region, subregion, population, or area.
+- Because of that, the icon highlight logic is not fully correct for those columns.
+- Sorting itself still works, but the icon display is inaccurate.
+
+
+6. Local state used by the page
+-------------------------------
+
+CountryTable defines these state variables:
+
+6.1 countries
+- Type: Country[]
+- Initial value: []
+- Stores the raw list returned from the API.
+
+6.2 loading
+- Type: boolean
+- Initial value: true
+- Controls whether the loading UI should appear.
+
+6.3 error
+- Type: string | null
+- Initial value: null
+- Stores an error message if the API request fails.
+
+6.4 searchInput
+- Type: string
+- Initial value: ""
+- Stores exactly what the user is typing in the search box immediately.
+
+6.5 search
+- Type: string
+- Initial value: ""
+- Stores the debounced search value used for actual filtering.
+
+6.6 sortKey
+- Type: SortKey
+- Initial value: "name"
+- Controls which column is currently used for sorting.
+
+6.7 sortAsc
+- Type: boolean
+- Initial value: true
+- Controls ascending vs descending sort direction.
+
+6.8 page
+- Type: number
+- Initial value: 1
+- Tracks the current pagination page.
+
+6.9 regionFilter
+- Type: string
+- Initial value: "All"
+- Tracks the selected region dropdown value.
+
+6.10 PAGE_SIZE
+- Constant value: 10
+- Shows 10 rows per page.
+
+
+7. First effect: loading the data
+---------------------------------
+
+The first useEffect has an empty dependency array:
+useEffect(..., [])
+
+That means it runs once when the component mounts.
+
+Step by step:
+
+1. It defines an async function called fetchData.
+2. It sets loading to true.
+3. It clears any previous error by setting error to null.
+4. It calls getCountries().
+5. It checks whether the response is already an array.
+6. If it is not an array, it tries response.data.
+7. It stores the final array in countries state.
+8. If anything throws, it sets a readable error message.
+9. In finally, it sets loading to false.
+
+What this means in practice:
+
+- When the page first opens, it starts in loading state.
+- After the API returns, the data is stored locally in memory.
+- After that, search/filter/sort/pagination happen client-side.
+
+
+8. Where getCountries gets data from
+------------------------------------
+
+The function is in:
+application/services/countryService.ts
+
+It currently returns:
+countriesApiClient.get("/api/countries")
+
+So the page does not search the backend on every keystroke.
+It fetches the dataset once, then works locally on that dataset.
+
+
+9. Second effect: debounced search
+----------------------------------
+
+This is the debounce logic that was added.
+
+How it works:
+
+1. The input field writes directly to searchInput.
+2. A useEffect watches searchInput.
+3. Every time searchInput changes, the component starts a 300ms timer.
+4. When the timer finishes, it copies searchInput into search.
+5. If the user types again before 300ms ends, cleanup runs and clears the old timer.
+6. A new timer starts for the latest value.
+
+Why this matters:
+
+- The text box still updates instantly.
+- The expensive filtering work waits until typing pauses.
+- If someone types quickly, the table usually re-filters only once after they stop.
+
+Before debounce:
+- search updated on every keystroke.
+- filtering ran on every keystroke.
+
+After debounce:
+- searchInput updates on every keystroke.
+- search updates only after 300ms of idle time.
+- filtering runs only when the debounced value changes.
+
+
+10. Region list generation
+--------------------------
+
+The regions array is built from the loaded country data.
+
+Step by step:
+
+1. Start with ["All"].
+2. Map countries to c.region.
+3. Remove falsy values with filter(Boolean).
+4. Remove duplicates using new Set(...).
+5. Convert the set back into an array.
+6. Sort alphabetically.
+7. Spread that sorted region list after "All".
+
+Final result:
+- The dropdown always includes "All".
+- The rest of the regions are generated dynamically from the dataset.
+
+
+11. Filtering logic
+-------------------
+
+Filtering happens in the filtered variable:
+
+const filtered = countries.filter(...)
+
+Each country must satisfy two conditions:
+
+11.1 Search match
+
+The component builds one searchable string by joining:
+
+- name
+- alpha2Code
+- alpha3Code
+- capital
+- subregion
+
+Then it:
+
+- converts that combined text to lowercase
+- converts the debounced search value to lowercase
+- checks includes(...)
+
+So search is case-insensitive.
+
+Examples:
+
+- Typing "nep" can match Nepal.
+- Typing "ktm" would not match unless that text is actually present.
+- Typing a capital name can match the capital field.
+- Typing an alpha code can match alpha2Code or alpha3Code.
+
+11.2 Region match
+
+The country passes the region filter if:
+
+- regionFilter === "All"
+  or
+- c.region === regionFilter
+
+Both search match and region match must be true.
+
+
+12. Sorting logic
+-----------------
+
+Sorting happens in the sorted variable:
+
+const sorted = [...filtered].sort(...)
+
+Important detail:
+- The code copies filtered with [...filtered] before sorting.
+- This avoids mutating the original filtered array.
+
+Step by step:
+
+1. Read the value from the active sort key on item a.
+2. Read the value from the active sort key on item b.
+3. Fall back to an empty string when the value is missing.
+4. If both values are numbers, subtract them for numeric sorting.
+5. Otherwise convert both to strings and compare alphabetically.
+6. If sortAsc is true, return cmp.
+7. If sortAsc is false, return -cmp.
+
+What this gives you:
+
+- Numbers like population and area sort numerically.
+- Text fields like name, capital, region, and subregion sort alphabetically.
+
+Default sort on first load:
+- sortKey = "name"
+- sortAsc = true
+
+So the initial table order is country name ascending.
+
+
+13. Pagination logic
+--------------------
+
+Pagination is calculated after filtering and sorting.
+
+13.1 totalPages
+
+Computed as:
+Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
+
+Why Math.max(1, ...):
+- It guarantees at least 1 page even when there are 0 results.
+
+13.2 paginated
+
+Computed as:
+sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+Examples:
+
+- Page 1 with PAGE_SIZE 10 gives rows 0 to 9.
+- Page 2 gives rows 10 to 19.
+
+Important ordering rule:
+
+The page is applied last.
+The flow is:
+
+raw data -> filtered -> sorted -> paginated
+
+That is the correct order for this kind of table.
+
+
+14. Event handlers
+------------------
+
+14.1 handleSort
+
+This function receives a SortKey.
+
+Behavior:
+
+- If the user clicks the currently active column, it flips sortAsc.
+- If the user clicks a different column, it changes sortKey and resets sortAsc to true.
+- In both cases it resets page to 1.
+
+Why reset to page 1:
+- Changing sort can significantly change result order.
+- Staying on a later page can be confusing after sort changes.
+
+14.2 handleSearch
+
+Behavior:
+
+- Reads e.target.value from the input box.
+- Updates searchInput immediately.
+- Resets page to 1.
+
+Important detail:
+- It does not update search directly anymore.
+- search gets updated later by the debounce effect.
+
+
+15. What the page renders at the top
+------------------------------------
+
+The top section is the toolbar.
+
+It contains:
+
+- A "Countries" heading
+- A live count showing "(filtered.length of countries.length)" once loading is complete
+- A region dropdown
+- A search input
+
+What the count means:
+
+- The first number is how many records remain after current filters.
+- The second number is the total loaded country count.
+
+
+16. Region dropdown behavior
+----------------------------
+
+The select element is controlled by regionFilter.
+
+When the user changes it:
+
+1. setRegionFilter(e.target.value) runs.
+2. setPage(1) runs.
+3. The component re-renders.
+4. filtered is recalculated with the new region.
+5. sorted and paginated are recalculated from that filtered result.
+
+
+17. Search input behavior
+-------------------------
+
+The input field is controlled by searchInput.
+
+When the user types:
+
+1. onChange calls handleSearch.
+2. handleSearch updates searchInput immediately.
+3. page resets to 1.
+4. The input visually updates right away.
+5. The debounce effect starts or restarts a 300ms timer.
+6. After 300ms without more typing, search is updated.
+7. filtered recalculates using search.
+8. sorted and paginated update from the filtered data.
+
+This creates the delayed search application behavior.
+
+
+18. Loading state
+-----------------
+
+If loading is true, the component renders a centered loading message and spinner.
+
+The text shown is:
+Loading countries…
+
+This appears while the first fetch is in progress.
+
+
+19. Error state
+---------------
+
+If there is an error and loading is false, the component renders a red error box.
+
+The displayed message is:
+
+- the actual Error message if one exists
+  or
+- "Failed to load countries."
+
+
+20. Empty state
+---------------
+
+If loading is false, error is null, and filtered.length is 0, the component renders:
+
+No countries match your search.
+
+This means:
+
+- the API succeeded
+- but current search/filter conditions matched nothing
+
+
+21. Main table rendering
+------------------------
+
+The table only appears when:
+
+- not loading
+- no error
+- filtered.length > 0
+
+The table is wrapped in a horizontally scrollable container:
+- overflow-x-auto
+
+This is important because the table has many columns and may exceed smaller screen widths.
+
+
+22. Table header columns
+------------------------
+
+The table header contains these columns:
+
+1. #
+2. Flag
+3. Country
+4. Code
+5. Capital
+6. Region
+7. Subregion
+8. Population
+9. Area
+10. Currency
+11. Languages
+
+Sortable columns:
+
+- Country
+- Capital
+- Region
+- Subregion
+- Population
+- Area
+
+Non-sortable columns:
+
+- #
+- Flag
+- Code
+- Currency
+- Languages
+
+
+23. How each table row is built
+-------------------------------
+
+Rows are rendered from:
+paginated.map((country, idx) => ...)
+
+That means only the countries on the current page are shown.
+
+Each row uses:
+key={country.alpha3Code}
+
+This assumes alpha3Code is unique for each country.
+
+
+24. Row column details
+----------------------
+
+24.1 Row number
+
+The first cell shows:
+(page - 1) * PAGE_SIZE + idx + 1
+
+This means the numbering continues across pages instead of restarting at 1.
+
+Examples:
+
+- First row on page 1 is 1.
+- First row on page 2 is 11.
+
+24.2 Flag
+
+The flag cell uses Next.js Image.
+
+Image source:
+- country.flags?.png if available
+- otherwise country.flag
+
+Other details:
+- alt text is based on the country name
+- fill is used for sizing inside a relative wrapper
+- loading="lazy" delays loading until needed
+
+24.3 Country name and native name
+
+The main country name is always shown.
+
+The native name is shown underneath only if:
+
+- nativeName exists
+- nativeName is different from name
+
+This avoids duplicate text.
+
+24.4 Country codes
+
+The code cell shows:
+
+- alpha2Code
+- alpha3Code
+
+They are displayed as stacked badges.
+
+24.5 Capital
+
+Shows the capital.
+If missing, it shows "—".
+
+24.6 Region
+
+Shows the region.
+If missing, it shows "—".
+
+24.7 Subregion
+
+Shows the subregion.
+If missing, it shows "—".
+
+24.8 Population
+
+Uses formatNumber(country.population).
+
+So a large number is displayed with separators.
+
+24.9 Area
+
+Uses formatArea(country.area).
+
+So area is shown with separators and "km²".
+
+24.10 Currency
+
+If currencies exist:
+- It loops through them.
+- It prints symbol and code for each one.
+
+If currencies do not exist:
+- It shows "—".
+
+24.11 Languages
+
+If languages exist:
+- It shows up to the first 3 language names as pill badges.
+
+If there are more than 3:
+- It shows an extra badge like +2.
+
+This keeps the table compact.
+
+
+25. Pagination UI behavior
+--------------------------
+
+Below the table, the page renders pagination controls.
+
+There are two main parts:
+
+25.1 Summary text
+
+It shows:
+Showing X-Y of Z
+
+Where:
+
+- X is the first row number on the current page
+- Y is the last visible row number on the current page
+- Z is the total number of sorted results after filtering
+
+25.2 Navigation buttons
+
+There are four buttons:
+
+- « goes to the first page
+- ‹ goes to the previous page
+- › goes to the next page
+- » goes to the last page
+
+The current page number is shown in a blue pill between them.
+
+Buttons disable themselves when movement is not possible:
+
+- first/previous are disabled on page 1
+- next/last are disabled on the final page
+
+
+26. Full data flow from load to display
+---------------------------------------
+
+This is the simplest end-to-end explanation for someone else:
+
+1. The /tables route renders CountryTable.
+2. CountryTable mounts in the browser.
+3. The first effect fetches the countries list from /api/countries.
+4. The response is stored in countries state.
+5. The component generates the region dropdown values from that data.
+6. The user can type in search, choose a region, click sortable headers, or change pages.
+7. Search input is debounced:
+   searchInput updates immediately, search updates after 300ms.
+8. The component filters the raw countries array using the debounced search and selected region.
+9. The filtered result is sorted by the chosen column and direction.
+10. The sorted result is sliced to the current page.
+11. Only the paginated rows are rendered in the table.
+12. Pagination controls reflect the current page and result count.
+
+
+27. Exact difference after debouncing was added
+-----------------------------------------------
+
+Before:
+
+- The search term updated on every keypress.
+- The filter recalculated on every keypress.
+- The table re-rendered against the new search value on every keypress.
+
+Now:
+
+- The visible text field still updates on every keypress.
+- The actual filter term waits 300ms after typing stops.
+- The filter and table update less often.
+
+This is mainly a performance improvement and a smoother UX change.
+It does not change which countries match the search.
+
+
+28. Important current quirks to mention honestly
+------------------------------------------------
+
+If you need to explain the page accurately, mention these two implementation details:
+
+1. Sort icon bug
+- Several sortable headers pass col="name" into SortIcon.
+- That means the icon highlight can be wrong on Capital, Region, Subregion, Population, and Area.
+- The sorting function itself still uses the correct sortKey when clicked.
+
+2. Thin route page
+- app/tables/page.tsx does not contain business logic.
+- It simply renders CountryTable.
+- The real behavior lives in CountryTable.tsx.
+
+
+29. Short version you can say aloud
+-----------------------------------
+
+"This page loads the full countries list once from the API, stores it in local state,
+and then does all interaction on the client side. The search box is debounced by
+300 milliseconds, the region dropdown filters the results, clicking sortable headers
+changes the sort column and direction, and pagination shows 10 rows at a time. The
+route file itself is just a wrapper; almost all of the logic is inside CountryTable."
+

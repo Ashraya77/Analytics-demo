@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { LogOut } from "lucide-react"
 import {
   DropdownMenu,
@@ -29,7 +30,9 @@ export function UserNav() {
       <DropdownMenuContent side="top" align="start" className="w-52">
         <DropdownMenuLabel>My account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>Profile</DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard/profile">Profile</Link>
+        </DropdownMenuItem>
         <DropdownMenuItem>Billing</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="text-destructive">

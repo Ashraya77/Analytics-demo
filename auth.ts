@@ -1,5 +1,4 @@
 import NextAuth from "next-auth";
-import apiClient from "./application/repository/axiosInstance";
 import Credentials from "next-auth/providers/credentials";
 import axios from "axios";
 

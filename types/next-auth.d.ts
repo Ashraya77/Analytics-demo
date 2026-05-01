@@ -5,7 +5,7 @@ declare module "next-auth" {
   interface Session {
     token: string
     user: {
-      id: number
+      id: string
       email: string
       username: string
       isStaff: boolean
@@ -15,7 +15,7 @@ declare module "next-auth" {
   interface User {
     token: string
     user: {
-      id: number
+      id: string
       email: string
       username: string
       is_staff: boolean
@@ -25,7 +25,7 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
-    id: number
+    id: string
     email: string
     username: string
     isStaff: boolean

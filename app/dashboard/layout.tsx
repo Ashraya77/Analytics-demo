@@ -7,25 +7,15 @@ import {
   FileText,
   Settings,
   Bell,
-  Search,
   LogOut,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { UserNav } from "@/components/ui/user-nav"
-
+import Avatar from "@/components/custom/Avatar"
 const navItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { label: "Analytics", href: "/dashboard/analytics", icon: BarChart2 },
@@ -71,8 +61,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {/* Topbar */}
         <header className="h-14 flex items-center gap-4 px-5 bg-background border-b shrink-0">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search…" className="pl-9 h-8 text-sm bg-muted/50" />
+           <h1 className="text-3xl font-bold">Dashboard</h1>
           </div>
 
           <div className="ml-auto flex items-center gap-2">

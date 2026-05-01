@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getCountries } from "@/application/services/countryService";
 import Image from "next/image";
 import { Country, SortKey, SORT_KEYS } from "@/types/Countries";
+import EditCountryModal from "./EditCountryModal";
 
 
 // Helpers
@@ -49,7 +50,7 @@ export default function CountryTable() {
   const regionFilter = searchParams.get("region") ?? "All";
   const sort = searchParams.get("sort");
 
-const sortKey = isSortKey(sort) ? sort : "name";
+  const sortKey = isSortKey(sort) ? sort : "name";
   const sortAsc = searchParams.get("order") !== "desc";
   const page = getPositivePage(searchParams.get("page"));
 
@@ -57,6 +58,8 @@ const sortKey = isSortKey(sort) ? sort : "name";
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState(search);
+  const [editingCountry, setEditingCountry] = useState<Country | null>(null);
+
   const lastAppliedSearchRef = useRef(search);
   const PAGE_SIZE = 10;
 
@@ -189,47 +192,69 @@ const sortKey = isSortKey(sort) ? sort : "name";
   };
 
   return (
-    <div className="w-full space-y-4 mt-10">
-      {/* Toolbar */}
-      <div className="flex flex-col gap-10 sm:flex-row sm:items-center sm:justify-center">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-          Countries
-          {!loading && (
-            <span className="ml-2 text-sm font-normal text-gray-500">
-              ({filtered.length} of {countries.length})
-            </span>
-          )}
-        </h2>
+    <div className="w-full space-y-4 mt-5">
+      {/* Header Section - Center Oriented */}
+      <header className="mb-12 flex flex-col items-center text-center">
 
-        <div className="flex flex-col gap-2 sm:flex-row">
-          {/* Region filter */}
-          <select
-            value={regionFilter}
-            onChange={(e) => {
-              replaceQueryParams({
-                region: e.target.value === "All" ? null : e.target.value,
-                page: null,
-              });
-            }}
-            className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {regions.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
+        {/* 1. Title & Meta Section */}
+        <div className="space-y-2 mb-8">
 
-          {/* Search */}
-          <input
-            type="search"
-            placeholder="Search name, code, capital…"
-            value={searchInput}
-            onChange={handleSearch}
-            className="w-full sm:w-64 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight sm:text-5xl">
+            Global Countries
+          </h1>
+
         </div>
-      </div>
+
+        {/* 2. Unified Search & Filter Bar - Width Constrained */}
+        <div className="w-full max-w-3xl">
+          <div className="flex flex-col sm:flex-row items-center gap-3 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none">
+
+            {/* Search Input Container */}
+            <div className="relative flex-1 w-full group">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="search"
+                placeholder="Search by name, capital, or code..."
+                value={searchInput}
+                onChange={handleSearch}
+                className="w-full pl-12 pr-4 py-3 bg-transparent border-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400 outline-none"
+              />
+            </div>
+
+            {/* Vertical Divider (Hidden on mobile) */}
+            <div className="hidden sm:block w-px h-8 bg-gray-200 dark:bg-gray-700" />
+
+            {/* Region Dropdown */}
+            <div className="relative w-full sm:w-48">
+              <select
+                value={regionFilter}
+                onChange={(e) => {
+                  replaceQueryParams({
+                    region: e.target.value === "All" ? null : e.target.value,
+                    page: null,
+                  });
+                }}
+                className="w-full appearance-none pl-4 pr-10 py-3 bg-transparent border-none focus:ring-0 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer outline-none"
+              >
+                {regions.map((r) => (
+                  <option key={r} value={r} className="dark:bg-gray-800">{r === "All" ? "All Regions" : r}</option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+      </header>
 
       {/* Loading */}
       {loading && (
@@ -436,14 +461,14 @@ const sortKey = isSortKey(sort) ? sort : "name";
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
                       {country.currencies?.length
                         ? country.currencies.map((c, index) => (
-                            <span
-                              key={`${c.code}-${index}`}
-                              title={c.name}
-                              className="mr-1 whitespace-nowrap"
-                            >
-                              {c.symbol} {c.code}
-                            </span>
-                          ))
+                          <span
+                            key={`${c.code}-${index}`}
+                            title={c.name}
+                            className="mr-1 whitespace-nowrap"
+                          >
+                            {c.symbol} {c.code}
+                          </span>
+                        ))
                         : "—"}
                     </td>
 
@@ -473,6 +498,7 @@ const sortKey = isSortKey(sort) ? sort : "name";
                         type="button"
                         aria-label={`Edit ${country.name}`}
                         className="rounded-md border border-blue-200 px-3 py-1 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                        onClick={() => setEditingCountry(country)}
                       >
                         Edit
                       </button>
@@ -482,7 +508,18 @@ const sortKey = isSortKey(sort) ? sort : "name";
               </tbody>
             </table>
           </div>
-
+          <div>
+            <EditCountryModal
+              isOpen={!!editingCountry}
+              country={editingCountry}
+              onClose={() => setEditingCountry(null)}
+              onSave={(updated) => {
+                // update your local state or refetch
+                console.log("Saved:", updated);
+              }}
+            />
+          </div>
+          
           {/* Pagination */}
           <div className="flex items-center justify-center gap-10 text-sm text-gray-600 dark:text-gray-400">
             <span>

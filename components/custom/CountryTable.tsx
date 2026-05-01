@@ -199,14 +199,14 @@ export default function CountryTable() {
         {/* 1. Title & Meta Section */}
         <div className="space-y-2 mb-3">
 
-          <h1 className="text-xl font-extrabold text-foreground tracking-tight sm:text-5xl">
+          <h1 className="text-xl font-extrabold text-foreground tracking-tight sm:text-2xl">
             Global Countries
           </h1>
 
         </div>
 
         {/* 2. Unified Search & Filter Bar - Width Constrained */}
-        <div className="w-full max-w-3xl">
+        <div className="w-full max-w-2xl">
           <div className="flex flex-col sm:flex-row items-center gap-3 p-2 bg-card border border-border rounded-2xl shadow-xl shadow-border/50">
 
             {/* Search Input Container */}

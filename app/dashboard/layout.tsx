@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
   BarChart2,
+  Globe2,
   Settings,
   ChevronRight,
 } from "lucide-react"
@@ -15,7 +16,7 @@ import UserAvatar from "@/components/custom/UserAvatar"
 
 const navItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Countries", href: "/dashboard/countries", icon: BarChart2 },
+  { label: "Countries", href: "/dashboard/countries", icon: Globe2 },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ]
 
@@ -90,8 +91,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   key={href}
                   href={href}
                   className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
                     }`}
                 >
                   {isActive && (
@@ -99,8 +100,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   )}
                   <span
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${isActive
-                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                        : "bg-sidebar-accent/50 text-sidebar-foreground/70 group-hover:text-sidebar-accent-foreground"
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                      : "bg-sidebar-accent/50 text-sidebar-foreground/70 group-hover:text-sidebar-accent-foreground"
                       }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -113,7 +114,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </nav>
 
-       
 
       </aside>
 
@@ -124,7 +124,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           {/* Dynamic Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm font-medium">
             {breadcrumbs.map(({ label, href, isLast }, index) => (
-              <span key={href} className="flex items-center gap-1.5">
+              <span key={href} className="flex items-center font-bold text-xl gap-1.5">
                 {index > 0 && (
                   <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
                 )}

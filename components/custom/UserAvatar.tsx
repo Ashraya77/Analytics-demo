@@ -1,6 +1,6 @@
 "use client";
-
 import Link from "next/link";
+import { signOut } from "next-auth/react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,7 @@ import { User, LogOut } from "lucide-react";
 
 export default function UserAvatar() {
   const handleLogout = async () => {
-    // add your logout logic here
+    signOut({ callbackUrl: "/login" })
     console.log("Logging out...");
   };
 

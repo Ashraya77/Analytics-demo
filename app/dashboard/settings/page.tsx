@@ -60,8 +60,8 @@ export default function SettingsPage() {
         newPassword: "",
         confirmPassword: "",
       });
-    } catch (error: any) {
-      setMessage(error.message);
+    } catch (error: unknown) {
+      setMessage(error instanceof Error ? error.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -69,12 +69,12 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-xl mx-auto p-6">
-      <div className="bg-white shadow-md rounded-2xl p-8">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">Settings</h1>
+      <div className="bg-card text-card-foreground border border-border shadow-md rounded-2xl p-8">
+        <h1 className="text-2xl font-bold mb-6 text-foreground">Settings</h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Current Password
             </label>
             <input
@@ -83,13 +83,13 @@ export default function SettingsPage() {
               value={form.currentPassword}
               onChange={handleChange}
               required
-              className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-ring"
               placeholder="Enter current password"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               New Password
             </label>
             <input
@@ -98,13 +98,13 @@ export default function SettingsPage() {
               value={form.newPassword}
               onChange={handleChange}
               required
-              className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-ring"
               placeholder="Enter new password"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Confirm New Password
             </label>
             <input
@@ -113,7 +113,7 @@ export default function SettingsPage() {
               value={form.confirmPassword}
               onChange={handleChange}
               required
-              className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-ring"
               placeholder="Confirm new password"
             />
           </div>
@@ -122,8 +122,8 @@ export default function SettingsPage() {
             <p
               className={`text-sm ${
                 message.includes("successfully")
-                  ? "text-green-600"
-                  : "text-red-500"
+                  ? "text-success"
+                  : "text-destructive"
               }`}
             >
               {message}
@@ -133,7 +133,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition disabled:opacity-50"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-lg transition disabled:opacity-50"
           >
             {loading ? "Updating..." : "Change Password"}
           </button>

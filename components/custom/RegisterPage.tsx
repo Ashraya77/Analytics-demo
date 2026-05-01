@@ -24,7 +24,6 @@ const RegisterPage = () => {
     
     formState: { errors },
   } = useForm<Inputs>({
-    resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
       email: "",

@@ -11,7 +11,9 @@ export function AreaChart() {
       type: "area",
       toolbar: { show: false },
       background: "transparent",
+      foreColor: "var(--muted-foreground)",
     },
+    colors: ["var(--chart-1)"],
     stroke: { curve: "smooth", width: 2 },
     fill: {
       type: "gradient",
@@ -22,7 +24,7 @@ export function AreaChart() {
       categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
     },
     tooltip: { theme: "dark" },
-    grid: { borderColor: "#ffffff10" },
+    grid: { borderColor: "var(--border)" },
   }
 
   const series = [

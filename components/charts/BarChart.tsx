@@ -11,7 +11,9 @@ export function BarChart() {
       type: "bar",
       toolbar: { show: false },
       background: "transparent",
+      foreColor: "var(--muted-foreground)",
     },
+    colors: ["var(--chart-2)"],
     plotOptions: {
       bar: {
         borderRadius: 6,
@@ -22,7 +24,7 @@ export function BarChart() {
     xaxis: {
       categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
     },
-    grid: { borderColor: "#ffffff10" },
+    grid: { borderColor: "var(--border)" },
     tooltip: { theme: "dark" },
   }
 

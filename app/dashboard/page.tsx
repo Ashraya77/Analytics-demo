@@ -13,28 +13,28 @@ export default function DashboardPage() {
           { label: "New Signups",   value: "1,247",   change: "+8.7%"  },
           { label: "Churn Rate",    value: "3.2%",    change: "-1.1%"  },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-xl border bg-background p-5 space-y-1">
+          <div key={stat.label} className="rounded-xl border border-border bg-card p-5 space-y-1 text-card-foreground">
             <p className="text-sm text-muted-foreground">{stat.label}</p>
             <p className="text-2xl font-semibold">{stat.value}</p>
-            <p className="text-xs text-green-500">{stat.change} this month</p>
+            <p className="text-xs text-success">{stat.change} this month</p>
           </div>
         ))}
       </div>
 
       {/* Area chart — full width */}
-      <div className="rounded-xl border bg-background p-5">
+      <div className="rounded-xl border border-border bg-card p-5 text-card-foreground">
         <h2 className="text-sm font-medium text-muted-foreground mb-4">Revenue over time</h2>
         <AreaChart />
       </div>
 
       {/* Bar + Pie side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-xl border bg-background p-5">
+        <div className="rounded-xl border border-border bg-card p-5 text-card-foreground">
           <h2 className="text-sm font-medium text-muted-foreground mb-4">New users</h2>
           <BarChart />
         </div>
 
-        <div className="rounded-xl border bg-background p-5">
+        <div className="rounded-xl border border-border bg-card p-5 text-card-foreground">
           <h2 className="text-sm font-medium text-muted-foreground mb-4">Traffic sources</h2>
           <PieChart />
         </div>

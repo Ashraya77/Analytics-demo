@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/avatar";
 import { User, LogOut } from "lucide-react";
 
-export default function Avatar() {
+export default function UserAvatar() {
   const handleLogout = async () => {
     // add your logout logic here
     console.log("Logging out...");
@@ -44,7 +44,7 @@ export default function Avatar() {
 
         <DropdownMenuItem
           onClick={handleLogout}
-          className="flex items-center gap-2 cursor-pointer text-red-500 focus:text-red-500"
+          className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
         >
           <LogOut size={16} />
           Logout

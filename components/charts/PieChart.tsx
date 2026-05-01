@@ -10,7 +10,14 @@ export function PieChart() {
     chart: {
       type: "donut",
       background: "transparent",
+      foreColor: "var(--muted-foreground)",
     },
+    colors: [
+      "var(--chart-1)",
+      "var(--chart-2)",
+      "var(--chart-3)",
+      "var(--chart-5)",
+    ],
     labels: ["Direct", "Organic", "Referral", "Social"],
     dataLabels: { enabled: false },
     legend: {

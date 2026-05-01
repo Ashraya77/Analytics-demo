@@ -4,62 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getCountries } from "@/application/services/countryService";
 import Image from "next/image";
+import { Country, SortKey, SORT_KEYS } from "@/types/Countries";
 
-interface Currency {
-  code: string;
-  name: string;
-  symbol: string;
-}
-
-interface Language {
-  iso639_1: string;
-  iso639_2: string;
-  name: string;
-  nativeName: string;
-}
-
-interface Flags {
-  svg: string;
-  png: string;
-}
-
-interface Country {
-  name: string;
-  alpha2Code: string;
-  alpha3Code: string;
-  capital: string;
-  region: string;
-  subregion: string;
-  population: number;
-  area: number;
-  flag: string;
-  flags: Flags;
-  nativeName: string;
-  demonym: string;
-  currencies: Currency[];
-  languages: Language[];
-  callingCodes: string[];
-  independent: boolean;
-  timezones: string[];
-  borders: string[];
-}
-
-type SortKey =
-  | "name"
-  | "capital"
-  | "region"
-  | "subregion"
-  | "population"
-  | "area";
-
-const SORT_KEYS: SortKey[] = [
-  "name",
-  "capital",
-  "region",
-  "subregion",
-  "population",
-  "area",
-];
 
 // Helpers
 function formatNumber(n?: number) {
@@ -101,9 +47,9 @@ export default function CountryTable() {
 
   const search = searchParams.get("search") ?? "";
   const regionFilter = searchParams.get("region") ?? "All";
-  const sortKey = isSortKey(searchParams.get("sort"))
-    ? searchParams.get("sort")
-    : "name";
+  const sort = searchParams.get("sort");
+
+const sortKey = isSortKey(sort) ? sort : "name";
   const sortAsc = searchParams.get("order") !== "desc";
   const page = getPositivePage(searchParams.get("page"));
 
@@ -405,6 +351,9 @@ export default function CountryTable() {
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     Languages
                   </th>
+                  <th className="pl-4 pr-12 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Action
+                  </th>
                 </tr>
               </thead>
 
@@ -516,6 +465,17 @@ export default function CountryTable() {
                           </span>
                         )}
                       </div>
+                    </td>
+
+                    {/* Action */}
+                    <td className="pl-4 pr-12 text-right">
+                      <button
+                        type="button"
+                        aria-label={`Edit ${country.name}`}
+                        className="rounded-md border border-blue-200 px-3 py-1 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                      >
+                        Edit
+                      </button>
                     </td>
                   </tr>
                 ))}

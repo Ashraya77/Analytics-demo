@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Moon, Sun } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -27,7 +27,13 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => getPreferredTheme())
+  const [theme, setTheme] = useState<Theme>("light")
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setTheme(getPreferredTheme())
+    setMounted(true)
+  }, [])
 
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark"
@@ -50,7 +56,9 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       suppressHydrationWarning
     >
-      {isDark ? (
+      {!mounted ? (
+        <span className="h-4 w-4" />
+      ) : isDark ? (
         <Sun className="h-4 w-4" />
       ) : (
         <Moon className="h-4 w-4" />

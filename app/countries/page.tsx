@@ -1,14 +1,9 @@
-import React, { Suspense } from "react";
-import CountryTable from "@/components/custom/CountryTable";
+import React from 'react'
 
 const page = () => {
   return (
-    <div>
-      <Suspense fallback={<div className="mt-10">Loading table...</div>}>
-        <CountryTable />
-      </Suspense>
-    </div>
-  );
-};
+    <div>page</div>
+  )
+}
 
-export default page;
+export default page

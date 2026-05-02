@@ -1,12 +1,12 @@
-import CountryTable from '@/components/custom/CountryTable'
-import React from 'react'
+export const dynamic = "force-dynamic";
 
-const page = () => {
+import { Suspense } from "react";
+import CountriesClient from "@/components/custom/CountriesClient";
+
+export default function Page() {
   return (
-    <div>
-        <CountryTable/>
-    </div>
-  )
+    <Suspense fallback={<div>Loading countries...</div>}>
+      <CountriesClient />
+    </Suspense>
+  );
 }
-
-export default page

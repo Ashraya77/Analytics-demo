@@ -19,7 +19,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
           );
           return data;
-        } catch {
+        } catch (error: any) {
+          console.error("Login API Error:", error.message);
           return null;
         }
       },

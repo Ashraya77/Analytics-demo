@@ -64,6 +64,11 @@ const LoginPage = () => {
           onSubmit={handleSubmit(onSubmit)}
           noValidate
         >
+          {errors.root && (
+            <div className="rounded-xl bg-red-50 p-4 border border-red-200 text-center">
+              <p className="text-sm font-medium text-red-600">{errors.root.message}</p>
+            </div>
+          )}
           <label className="block space-y-2">
             <span className="text-sm font-medium text-slate-700">Username</span>
             <input

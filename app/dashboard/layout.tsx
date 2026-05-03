@@ -120,23 +120,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Main area */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Topbar */}
-        <header className="h-16 flex items-center gap-4 px-6 bg-card border-b border-border shrink-0">
+        <header className="h-16 flex items-center gap-4 px-8 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border shrink-0 z-10">
           {/* Dynamic Breadcrumbs */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm font-medium">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm font-medium">
             {breadcrumbs.map(({ label, href, isLast }, index) => (
-              <span key={href} className="flex items-center font-bold text-xl gap-1.5">
+              <span key={href} className="flex items-center gap-2">
                 {index > 0 && (
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                 )}
 
                 {isLast ? (
-                  <span className="text-foreground" aria-current="page">
+                  <span className="text-foreground font-semibold tracking-tight" aria-current="page">
                     {label}
                   </span>
                 ) : (
                   <Link
                     href={href}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-muted-foreground/80 hover:text-foreground transition-colors"
                   >
                     {label}
                   </Link>
@@ -145,8 +145,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-4">
             <ThemeToggle />
+            <div className="h-6 w-px bg-border/60" aria-hidden="true" />
             <UserAvatar />
           </div>
         </header>

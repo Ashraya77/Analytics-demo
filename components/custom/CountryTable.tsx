@@ -39,7 +39,7 @@ export default function CountryTable() {
             Global Countries
           </h1>
         </div>
-
+      
         <div className="w-full max-w-2xl">
           <div className="flex flex-col sm:flex-row items-center gap-3 p-2 bg-card border border-border rounded-2xl shadow-border/50">
             <div className="relative flex-1 w-full group">

@@ -11,8 +11,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       authorize: async (credentials) => {
         try {
+          const apiUrl = process.env.API_URL;
+
+          if (!apiUrl) {
+            throw new Error("API_URL is not configured");
+          }
+
           const { data } = await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/v1/login/`,
+            `${apiUrl}/api/v1/login/`,
             {
               username: credentials?.username,
               password: credentials?.password,

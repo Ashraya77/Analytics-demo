@@ -128,80 +128,99 @@ export default function CountryDetailsClient({ countryName }: { countryName: str
   }
 
   return (
-    <div className="space-y-6">
-      <Link
-        href="/dashboard/countries"
-        className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Countries
-      </Link>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="flex items-center justify-between">
+        <Link
+          href="/dashboard/countries"
+          className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground/80 hover:text-primary transition-all group"
+        >
+          <div className="p-2 rounded-lg bg-background border border-border/50 group-hover:border-primary/30 group-hover:bg-primary/5 transition-all">
+            <ArrowLeft className="h-4 w-4" />
+          </div>
+          Back to Countries
+        </Link>
+      </div>
 
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="rounded-xl border border-border bg-card p-6 text-card-foreground">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-            <div className="relative h-28 w-44 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
-              <Image
-                src={country.flags?.png ?? country.flag}
-                alt={`${country.name} flag`}
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-                {country.name}
-              </h1>
-              {country.nativeName && country.nativeName !== country.name && (
-                <p className="mt-1 text-sm text-muted-foreground">{country.nativeName}</p>
-              )}
-              <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                <span className="rounded bg-muted px-2 py-1 font-mono font-semibold text-foreground">
-                  {country.alpha2Code}
-                </span>
-                <span className="rounded bg-muted px-2 py-1 font-mono text-muted-foreground">
-                  {country.alpha3Code}
-                </span>
+      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+        <div className="space-y-8">
+          {/* Main Info Card */}
+          <div className="rounded-3xl border border-border/50 bg-card shadow-sm overflow-hidden">
+            <div className="p-8 sm:p-10">
+              <div className="flex flex-col gap-8 sm:flex-row sm:items-start">
+                <div className="relative h-40 w-64 shrink-0 overflow-hidden rounded-2xl border border-border/40 shadow-md">
+                  <Image
+                    src={country.flags?.png ?? country.flag}
+                    alt={`${country.name} flag`}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+                <div className="flex-1 min-w-0 space-y-4">
+                  <div>
+                    <h1 className="text-4xl font-extrabold tracking-tight text-foreground">
+                      {country.name}
+                    </h1>
+                    {country.nativeName && country.nativeName !== country.name && (
+                      <p className="mt-1 text-lg font-medium text-muted-foreground/60">{country.nativeName}</p>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-3">
+                    <span className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-bold text-primary ring-1 ring-inset ring-primary/20">
+                      {country.region}
+                    </span>
+                    <span className="rounded-xl bg-muted/60 px-3 py-1 text-xs font-mono font-bold text-muted-foreground border border-border/40">
+                      {country.alpha3Code}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <Detail label="Capital" value={country.capital || "N/A"} icon="🏛️" />
+                <Detail label="Subregion" value={country.subregion || "N/A"} icon="📍" />
+                <Detail label="Population" value={formatNumber(country.population)} icon="👥" />
+                <Detail label="Area" value={`${formatNumber(country.area)} km²`} icon="🌍" />
+                <Detail label="Demonym" value={country.demonym || "N/A"} icon="🏷️" />
+                <Detail label="Timezone" value={country.timezones?.[0] || "N/A"} icon="🕒" />
               </div>
             </div>
           </div>
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Detail label="Capital" value={country.capital || "N/A"} />
-            <Detail label="Region" value={country.region || "N/A"} />
-            <Detail label="Subregion" value={country.subregion || "N/A"} />
-            <Detail label="Population" value={formatNumber(country.population)} />
-            <Detail label="Area" value={`${formatNumber(country.area)} km2`} />
-            <Detail label="Demonym" value={country.demonym || "N/A"} />
-          </div>
         </div>
 
-        <aside className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
-          <InfoGroup
-            label="Currencies"
-            values={country.currencies?.map((currency) =>
-              [currency.symbol, currency.code, currency.name].filter(Boolean).join(" ")
-            )}
-          />
-          <InfoGroup
-            label="Languages"
-            values={country.languages?.map((language) => language.name)}
-          />
-          <InfoGroup label="Timezones" values={country.timezones} />
-          <InfoGroup label="Calling Codes" values={country.callingCodes?.map((code) => `+${code}`)} />
-          <InfoGroup label="Borders" values={country.borders} />
+        <aside className="space-y-6">
+          <div className="rounded-3xl border border-border/50 bg-card p-8 shadow-sm space-y-8">
+            <InfoGroup
+              label="Currencies"
+              values={country.currencies?.map((currency) =>
+                [currency.symbol, currency.code].filter(Boolean).join(" ")
+              )}
+            />
+            <div className="h-px bg-border/40" />
+            <InfoGroup
+              label="Languages"
+              values={country.languages?.map((language) => language.name)}
+            />
+            <div className="h-px bg-border/40" />
+            <InfoGroup label="Calling Codes" values={country.callingCodes?.map((code) => `+${code}`)} />
+            <div className="h-px bg-border/40" />
+            <InfoGroup label="Neighboring Borders" values={country.borders} />
+          </div>
         </aside>
-      </section>
+      </div>
     </div>
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({ label, value, icon }: { label: string; value: string; icon?: string }) {
   return (
-    <div className="rounded-lg border border-border bg-background px-4 py-3">
-      <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
-      <p className="mt-1 text-sm font-medium text-foreground">{value}</p>
+    <div className="rounded-2xl border border-border/40 bg-muted/30 p-5 space-y-2 group hover:bg-muted/50 transition-all">
+      <div className="flex items-center gap-2">
+        <span className="text-lg">{icon}</span>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{label}</p>
+      </div>
+      <p className="text-lg font-bold text-foreground tracking-tight">{value}</p>
     </div>
   );
 }
@@ -210,17 +229,17 @@ function InfoGroup({ label, values }: { label: string; values?: string[] }) {
   const visibleValues = values?.filter(Boolean) ?? [];
 
   return (
-    <div>
-      <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
-      <div className="mt-2 flex flex-wrap gap-2">
+    <div className="space-y-4">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{label}</p>
+      <div className="flex flex-wrap gap-2">
         {visibleValues.length > 0 ? (
           visibleValues.map((value, index) => (
-            <span key={`${value}-${index}`} className="rounded-full bg-accent px-2 py-1 text-xs text-accent-foreground">
+            <span key={`${value}-${index}`} className="rounded-xl bg-background border border-border/50 px-3 py-1.5 text-xs font-bold text-foreground/80 shadow-sm">
               {value}
             </span>
           ))
         ) : (
-          <span className="text-sm text-muted-foreground">N/A</span>
+          <span className="text-sm font-medium text-muted-foreground/40 italic">Not Available</span>
         )}
       </div>
     </div>

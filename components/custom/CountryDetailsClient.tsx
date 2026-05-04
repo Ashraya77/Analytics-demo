@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 
 import { getCountryByName } from "@/application/services/countryService";
 import { Country } from "@/types/Countries";
@@ -17,6 +18,57 @@ function firstCountry(data: unknown): Country | null {
   if (Array.isArray(data)) return (data[0] as Country | undefined) ?? null;
   if (data && typeof data === "object") return data as Country;
   return null;
+}
+
+function CountryDetailsSkeleton() {
+  return (
+    <SkeletonTheme baseColor="var(--muted)" highlightColor="var(--secondary)" borderRadius={6}>
+      <div className="space-y-6" aria-busy="true" aria-label="Loading country details">
+        <div className="inline-flex items-center gap-2">
+          <Skeleton circle width={16} height={16} />
+          <Skeleton width={72} />
+        </div>
+
+        <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="rounded-xl border border-border bg-card p-6 text-card-foreground">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+              <Skeleton width={176} height={112} className="shrink-0" />
+              <div className="min-w-0 flex-1">
+                <Skeleton width={190} height={30} />
+                <Skeleton width={120} className="mt-2" />
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Skeleton width={34} height={24} />
+                  <Skeleton width={44} height={24} />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="rounded-lg border border-border bg-background px-4 py-3">
+                  <Skeleton width={72} height={12} />
+                  <Skeleton width={104} className="mt-2" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <aside className="space-y-5 rounded-xl border border-border bg-card p-6 text-card-foreground">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div key={index}>
+                <Skeleton width={88} height={12} />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Skeleton width={70} height={24} />
+                  <Skeleton width={54} height={24} />
+                  {index < 2 && <Skeleton width={64} height={24} />}
+                </div>
+              </div>
+            ))}
+          </aside>
+        </section>
+      </div>
+    </SkeletonTheme>
+  );
 }
 
 export default function CountryDetailsClient({ countryName }: { countryName: string }) {
@@ -55,11 +107,7 @@ export default function CountryDetailsClient({ countryName }: { countryName: str
   }, [countryName]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-80 items-center justify-center text-sm text-muted-foreground">
-        Loading country...
-      </div>
-    );
+    return <CountryDetailsSkeleton />;
   }
 
   if (error || !country) {

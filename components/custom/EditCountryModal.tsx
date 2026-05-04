@@ -7,7 +7,7 @@ interface EditCountryModalProps {
     country: Country | null;
     isOpen: boolean;
     onClose: () => void;
-    onSave: (updated: Country) => void;
+    onSave: (updated: Country) => void | Promise<void>;
 }
 const REGIONS = [
     "Africa",
@@ -25,9 +25,14 @@ export default function EditCountryModal({
     onSave,
 }: EditCountryModalProps) {
     const [form, setForm] = useState<Country | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (country) setForm({ ...country });
+        if (country) {
+            setForm({ ...country });
+            setSaveError(null);
+        }
     }, [country]);
 
     if (!isOpen || !form) return null;
@@ -36,10 +41,18 @@ export default function EditCountryModal({
         setForm((prev) => prev && { ...prev, [e.target.name]: e.target.value });
     };
 
-    const handleSave = () => {
-        if (form) {
-            onSave(form);
-            onClose();
+    const handleSave = async () => {
+        if (form && !isSaving) {
+            setIsSaving(true);
+            setSaveError(null);
+            try {
+                await onSave(form);
+                onClose();
+            } catch (error) {
+                setSaveError(error instanceof Error ? error.message : "Failed to save country.");
+            } finally {
+                setIsSaving(false);
+            }
         }
     };
 
@@ -104,6 +117,9 @@ export default function EditCountryModal({
                     {/* Read-only derived fields */}
                     <ReadOnlyField label="Currency" value={currencyDisplay} />
                     <ReadOnlyField label="Languages" value={languageDisplay} />
+                    {saveError && (
+                        <p className="text-sm text-red-600 dark:text-red-400">{saveError}</p>
+                    )}
                 </div>
 
                 {/* Footer */}
@@ -116,9 +132,10 @@ export default function EditCountryModal({
                     </button>
                     <button
                         onClick={handleSave}
-                        className="text-sm px-4 py-1.5 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-medium hover:opacity-90 transition"
+                        disabled={isSaving}
+                        className="text-sm px-4 py-1.5 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-medium hover:opacity-90 transition disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        Save changes
+                        {isSaving ? "Saving..." : "Save changes"}
                     </button>
                 </div>
             </div>

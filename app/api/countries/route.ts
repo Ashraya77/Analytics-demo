@@ -1,5 +1,6 @@
 // app/api/countries/route.ts
 import { NextResponse } from "next/server";
+
 export async function GET() {
   try {
     const response = await fetch("https://www.apicountries.com/countries", {
@@ -20,6 +21,24 @@ export async function GET() {
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const payload = await request.json();
+
+    console.log("Country update payload:", payload);
+
+    return NextResponse.json({
+      ok: true,
+      received: payload,
+    });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Invalid country payload" },
+      { status: 400 }
     );
   }
 }

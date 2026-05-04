@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { SortKey } from "@/types/Countries";
 import EditCountryModal from "./EditCountryModal";
 import { useCountryTable } from "@/application/hooks/useCountryTable";
+import { updateCountry } from "@/application/services/countryService";
 
 function formatNumber(n?: number) {
   if (n == null) return "—";
@@ -19,6 +21,99 @@ function formatArea(n?: number) {
 function SortIcon({ col, sortKey, sortAsc }: { col: SortKey; sortKey: SortKey; sortAsc: boolean }) {
   if (sortKey !== col) return <span className="opacity-30"> ↕</span>;
   return <span className="text-primary">{sortAsc ? " ↑" : " ↓"}</span>;
+}
+
+const skeletonRows = Array.from({ length: 10 });
+
+function CountryTableSkeleton() {
+  return (
+    <SkeletonTheme baseColor="var(--muted)" highlightColor="var(--secondary)" borderRadius={6}>
+      <div className="overflow-x-auto rounded-xl border border-border" aria-label="Loading countries">
+        <table className="min-w-full divide-y divide-border text-sm">
+          <thead className="bg-muted">
+            <tr>
+              <th className="w-10 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">#</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Flag</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Country</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Code</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Capital</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Region</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Subregion</th>
+              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Population</th>
+              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Area</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Currency</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Languages</th>
+              <th className="pl-4 pr-6 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Action</th>
+            </tr>
+          </thead>
+
+          <tbody className="divide-y divide-border bg-card text-card-foreground">
+            {skeletonRows.map((_, idx) => (
+              <tr key={idx}>
+                <td className="px-4 py-3">
+                  <Skeleton width={18} />
+                </td>
+                <td className="px-4 py-3">
+                  <Skeleton width={32} height={20} />
+                </td>
+                <td className="px-4 py-3">
+                  <Skeleton width={130} />
+                  <Skeleton width={84} height={12} className="mt-1" />
+                </td>
+                <td className="px-4 py-3">
+                  <div className="inline-flex flex-col gap-1">
+                    <Skeleton width={34} height={18} />
+                    <Skeleton width={40} height={18} />
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <Skeleton width={86} />
+                </td>
+                <td className="px-4 py-3">
+                  <Skeleton width={72} />
+                </td>
+                <td className="px-4 py-3">
+                  <Skeleton width={98} />
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <Skeleton width={84} />
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <Skeleton width={76} />
+                </td>
+                <td className="px-4 py-3">
+                  <Skeleton width={78} />
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-1">
+                    <Skeleton width={58} height={20} />
+                    <Skeleton width={46} height={20} />
+                  </div>
+                </td>
+                <td className="pl-4 pr-6 text-right">
+                  <div className="flex justify-end gap-2">
+                    <Skeleton width={44} height={26} />
+                    <Skeleton width={40} height={26} />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex items-center justify-center gap-10 text-sm">
+        <Skeleton width={120} />
+        <div className="flex items-center gap-1">
+          <Skeleton width={28} height={28} />
+          <Skeleton width={28} height={28} />
+          <Skeleton width={34} height={28} />
+          <Skeleton width={28} height={28} />
+          <Skeleton width={28} height={28} />
+        </div>
+      </div>
+    </SkeletonTheme>
+  );
 }
 
 export default function CountryTable() {
@@ -83,12 +178,8 @@ export default function CountryTable() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
-          <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-          </svg>
-          Loading countries…
+        <div aria-busy="true">
+          <CountryTableSkeleton />
         </div>
       )}
 
@@ -226,7 +317,9 @@ export default function CountryTable() {
             isOpen={!!editingCountry}
             country={editingCountry}
             onClose={() => setEditingCountry(null)}
-            onSave={(updated) => console.log("Saved:", updated)}
+            onSave={async (updated) => {
+              await updateCountry(updated);
+            }}
           />
 
           {/* Pagination */}

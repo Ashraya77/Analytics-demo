@@ -1,29 +1,46 @@
 "use client";
 
-import { SubmitHandler, useForm, useWatch } from "react-hook-form";
-import { registerSchema, type RegisterFormValues } from "@/lib/validations/auth.schema";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { registerSchema, RegisterFormValues } from "@/lib/validations/auth.schema";
 import { mapRegisterToPayload } from "@/application/mapper/mapper";
 import publicApiClient from "@/application/repository/publicAxiosInstance";
-
-type Inputs = {
-  name: string;
-  email: string;
-  phoneNumber: string;
-  dob: string;
-  age: number;
-  password: string;
-  confirmPassword: string;
-};
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { 
+  Loader2, 
+  User, 
+  Mail, 
+  Phone, 
+  Calendar, 
+  Hash, 
+  Lock, 
+  ShieldPlus,
+  ArrowRight
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const RegisterPage = () => {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setInternalError] = useState<string | null>(null);
+
   const {
-    control,
     register,
     handleSubmit,
-    
     formState: { errors },
-  } = useForm<Inputs>({
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -35,193 +52,228 @@ const RegisterPage = () => {
     },
   });
 
-  const password = useWatch({
-    control,
-    name: "password",
-  });
-
-  const onSubmit: SubmitHandler<Inputs> = async(values: RegisterFormValues) => {
+  const onSubmit = async (values: RegisterFormValues) => {
+    setIsLoading(true);
+    setInternalError(null);
     const payload = mapRegisterToPayload(values);
 
-      try {
-        const res = await publicApiClient.post("/api/v1/register/", payload);
-        console.log(res.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
+    try {
+      await publicApiClient.post("/api/v1/register/", payload);
+      router.push("/login");
+    } catch (error: any) {
+      setInternalError(error.response?.data?.message || "Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <section className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
-      <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="mb-8">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">
-            Create account
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold text-slate-900">
-            Register
-          </h1>
-          <p className="mt-2 text-sm text-slate-600">
-            Fill in your details to create your account.
-          </p>
-        </div>
-
-        <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className="grid gap-5 md:grid-cols-2">
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Name</span>
-              <input
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-900"
-                placeholder="Jane Doe"
-                {...register("name", {
-                  required: "Name is required",
-                  minLength: {
-                    value: 2,
-                    message: "Name must be at least 2 characters",
-                  },
-                })}
-              />
-              {errors.name && (
-                <p className="text-sm text-red-600">{errors.name.message}</p>
-              )}
-            </label>
-
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Email</span>
-              <input
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-900"
-                placeholder="jane@example.com"
-                type="email"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: "Enter a valid email address",
-                  },
-                })}
-              />
-              {errors.email && (
-                <p className="text-sm text-red-600">{errors.email.message}</p>
-              )}
-            </label>
-
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">
-                Phone number
-              </span>
-              <input
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-900"
-                placeholder="+1 555 000 0000"
-                type="tel"
-                {...register("phoneNumber", {
-                  required: "Phone number is required",
-                  minLength: {
-                    value: 10,
-                    message: "Phone number must be at least 10 digits",
-                  },
-                })}
-              />
-              {errors.phoneNumber && (
-                <p className="text-sm text-red-600">
-                  {errors.phoneNumber.message}
-                </p>
-              )}
-            </label>
-
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">
-                Date of birth
-              </span>
-              <input
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-900"
-                type="date"
-                {...register("dob", {
-                  required: "Date of birth is required",
-                })}
-              />
-              {errors.dob && (
-                <p className="text-sm text-red-600">{errors.dob.message}</p>
-              )}
-            </label>
-
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Age</span>
-              <input
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-900"
-                placeholder="21"
-                type="number"
-                {...register("age", {
-                  required: "Age is required",
-                  valueAsNumber: true,
-                  min: {
-                    value: 13,
-                    message: "You must be at least 13 years old",
-                  },
-                })}
-              />
-              {errors.age && (
-                <p className="text-sm text-red-600">{errors.age.message}</p>
-              )}
-            </label>
+    <section className="flex min-h-screen items-center justify-center bg-slate-50/50 dark:bg-slate-950 px-4 py-12 relative overflow-hidden">
+      {/* Decorative background */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-slate-950 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:6rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20"></div>
+      
+      <Card className="w-full max-w-[650px] shadow-2xl border-slate-200/60 dark:border-slate-800 backdrop-blur-sm bg-white/90 dark:bg-slate-900/90">
+        <CardHeader className="space-y-1 pb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="rounded-2xl bg-slate-900 dark:bg-slate-100 p-2.5 shadow-lg">
+              <ShieldPlus className="h-6 w-6 text-white dark:text-slate-900" />
+            </div>
           </div>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">
-                Password
-              </span>
-              <input
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-900"
-                placeholder="Enter your password"
-                type="password"
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: {
-                    value: 8,
-                    message: "Password must be at least 8 characters",
-                  },
-                })}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-600">
-                  {errors.password.message}
+          <CardTitle className="text-2xl font-bold text-center tracking-tight">Create an account</CardTitle>
+          <CardDescription className="text-center text-slate-500 dark:text-slate-400">
+            Join us today and start managing your analytics
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {error && (
+              <div className="rounded-lg bg-destructive/10 p-3 border border-destructive/20 animate-in fade-in zoom-in duration-200">
+                <p className="text-xs font-medium text-destructive text-center">
+                  {error}
                 </p>
-              )}
-            </label>
+              </div>
+            )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Name */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none ml-1">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input
+                    className={cn(
+                      "pl-10 bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800",
+                      errors.name && "border-destructive"
+                    )}
+                    placeholder="John Doe"
+                    {...register("name")}
+                    disabled={isLoading}
+                  />
+                </div>
+                {errors.name && (
+                  <p className="text-[12px] font-medium text-destructive ml-1">{errors.name.message}</p>
+                )}
+              </div>
 
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">
-                Confirm password
-              </span>
-              <input
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-900"
-                placeholder="Re-enter your password"
-                type="password"
-                {...register("confirmPassword", {
-                  required: "Please confirm your password",
-                  validate: (value) =>
-                    value === password || "Passwords do not match",
-                })}
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-600">
-                  {errors.confirmPassword.message}
-                </p>
+              {/* Email */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none ml-1">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input
+                    className={cn(
+                      "pl-10 bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800",
+                      errors.email && "border-destructive"
+                    )}
+                    placeholder="john@example.com"
+                    type="email"
+                    {...register("email")}
+                    disabled={isLoading}
+                  />
+                </div>
+                {errors.email && (
+                  <p className="text-[12px] font-medium text-destructive ml-1">{errors.email.message}</p>
+                )}
+              </div>
+
+              {/* Phone */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none ml-1">Phone Number</label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input
+                    className={cn(
+                      "pl-10 bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800",
+                      errors.phoneNumber && "border-destructive"
+                    )}
+                    placeholder="+1 (555) 000-0000"
+                    {...register("phoneNumber")}
+                    disabled={isLoading}
+                  />
+                </div>
+                {errors.phoneNumber && (
+                  <p className="text-[12px] font-medium text-destructive ml-1">{errors.phoneNumber.message}</p>
+                )}
+              </div>
+
+              {/* DOB */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none ml-1">Date of Birth</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input
+                    className={cn(
+                      "pl-10 bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800",
+                      errors.dob && "border-destructive"
+                    )}
+                    type="date"
+                    {...register("dob")}
+                    disabled={isLoading}
+                  />
+                </div>
+                {errors.dob && (
+                  <p className="text-[12px] font-medium text-destructive ml-1">{errors.dob.message}</p>
+                )}
+              </div>
+
+              {/* Age */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium leading-none ml-1">Age</label>
+                <div className="relative">
+                  <Hash className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input
+                    className={cn(
+                      "pl-10 bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800",
+                      errors.age && "border-destructive"
+                    )}
+                    placeholder="25"
+                    type="number"
+                    {...register("age", { valueAsNumber: true })}
+                    disabled={isLoading}
+                  />
+                </div>
+                {errors.age && (
+                  <p className="text-[12px] font-medium text-destructive ml-1">{errors.age.message}</p>
+                )}
+              </div>
+
+              {/* Password */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none ml-1">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input
+                    className={cn(
+                      "pl-10 bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800",
+                      errors.password && "border-destructive"
+                    )}
+                    placeholder="••••••••"
+                    type="password"
+                    {...register("password")}
+                    disabled={isLoading}
+                  />
+                </div>
+                {errors.password && (
+                  <p className="text-[12px] font-medium text-destructive ml-1">{errors.password.message}</p>
+                )}
+              </div>
+
+              {/* Confirm Password */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none ml-1">Confirm Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input
+                    className={cn(
+                      "pl-10 bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800",
+                      errors.confirmPassword && "border-destructive"
+                    )}
+                    placeholder="••••••••"
+                    type="password"
+                    {...register("confirmPassword")}
+                    disabled={isLoading}
+                  />
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-[12px] font-medium text-destructive ml-1">{errors.confirmPassword.message}</p>
+                )}
+              </div>
+            </div>
+
+            <Button 
+              className="w-full h-11 bg-slate-900 hover:bg-slate-800 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200 transition-all shadow-md group" 
+              type="submit" 
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                <>
+                  Create account
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </>
               )}
-            </label>
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-4 border-t border-slate-100 dark:border-slate-800 mt-4 pt-6 text-center">
+          <div className="text-sm text-slate-500">
+            Already have an account?{" "}
+            <button 
+              onClick={() => router.push("/login")}
+              className="font-semibold text-slate-900 dark:text-slate-100 hover:underline underline-offset-4"
+            >
+              Sign in
+            </button>
           </div>
-              
-          <button
-            className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-            type="submit"
-          >
-            Create account
-          </button>
-        </form>
-      </div>
+        </CardFooter>
+      </Card>
     </section>
   );
 };
 
 export default RegisterPage;
+
